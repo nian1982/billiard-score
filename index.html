@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MVP Billar Stream</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+
+<h2>Stream Billar - MVP</h2>
+
+<video id="video" controls width="800"></video>
+
+<script>
+  const video = document.getElementById('video');
+  const src = 'http://localhost:8080/hls/stream.m3u8';
+
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(src);
+    hls.attachMedia(video);
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = src;
+  }
+</script>
+
+</body>
+</html>

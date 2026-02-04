@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>HLS Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+
+<body style="background: #000; color: #fff; font-family: monospace;">
+    <h1>HLS Debug Test</h1>
+    <video id="video" controls style="width: 80%; max-width: 800px;"></video>
+    <div id="log" style="margin-top: 20px; padding: 10px; background: #222; max-height: 400px; overflow-y: scroll;">
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const log = document.getElementById('log');
+
+        function addLog(msg, color = '#0f0') {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+            console.log(msg);
+        }
+
+        addLog('Iniciando HLS Test...');
+
+        if (Hls.isSupported()) {
+            addLog('HLS.js es soportado');
+            const hls = new Hls({
+                debug: true,
+                enableWorker: true
+            });
+
+            hls.on(Hls.Events.MEDIA_ATTACHED, () => addLog('✓ Media attached'));
+            hls.on(Hls.Events.MANIFEST_LOADING, () => addLog('→ Cargando manifest...'));
+            hls.on(Hls.Events.MANIFEST_LOADED, () => addLog('✓ Manifest cargado', '#0f0'));
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                addLog('✓ Manifest parseado - Intentando play', '#0f0');
+                video.play().catch(e => addLog('Error autoplay: ' + e, '#f00'));
+            });
+            hls.on(Hls.Events.FRAG_LOADING, (e, data) => addLog(`→ Cargando fragmento ${data.frag.sn}`));
+            hls.on(Hls.Events.FRAG_LOADED, (e, data) => addLog(`✓ Fragmento ${data.frag.sn} cargado`));
+
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                const msg = `ERROR: ${data.type} - ${data.details}`;
+                addLog(msg, data.fatal ? '#f00' : '#fa0');
+                if (data.fatal) {
+                    addLog('Error fatal detectado', '#f00');
+                }
+            });
+
+            hls.attachMedia(video);
+            hls.loadSource('/hls/stream.m3u8');
+            addLog('Cargando /hls/stream.m3u8...');
+
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            addLog('Usando HLS nativo (Safari)');
+            video.src = '/hls/stream.m3u8';
+            video.addEventListener('loadedmetadata', () => addLog('✓ Metadata cargada'));
+            video.addEventListener('canplay', () => {
+                addLog('✓ Video listo para reproducir');
+                video.play();
+            });
+        } else {
+            addLog('HLS NO SOPORTADO', '#f00');
+        }
+
+        video.addEventListener('error', (e) => {
+            addLog(`Video Error: ${video.error ? video.error.message : 'Unknown'}`, '#f00');
+        });
+    </script>
+</body>
+
+</html>

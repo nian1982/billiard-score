@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Billa - HLS Stable</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #121212;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .side-panel {
+            width: 140px;
+            background: #1e1e1e;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-right: 1px solid #333;
+        }
+
+        .side-panel.right {
+            border-left: 1px solid #333;
+            border-right: none;
+        }
+
+        .mesa-card {
+            background: #2d2d2d;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #3d3d3d;
+        }
+
+        .mesa-title {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .mesa-controls {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .btn-score {
+            flex: 1;
+            padding: 10px 0;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            transition: 0.1s;
+        }
+
+        .btn-minus {
+            background: #c0392b;
+        }
+
+        .btn-plus {
+            background: #27ae60;
+        }
+
+        .center-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .scoreboard {
+            background: #000;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-bottom: 2px solid #007bff;
+            flex-wrap: wrap;
+        }
+
+        .score-display {
+            text-align: center;
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            min-width: 70px;
+        }
+
+        .score-val {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .score-lbl {
+            font-size: 0.65em;
+            color: #888;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        .video-wrapper {
+            flex: 1;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            max-height: 80vh;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9em;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .badge-live {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-dvr {
+            background: #3498db;
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .controls-bar {
+            background: #1e1e1e;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-main {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .btn-record {
+            background: #d35400;
+            color: white;
+        }
+
+        .btn-golive {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #7f8c8d;
+            color: white;
+            margin-left: auto;
+        }
+
+        .no-signal {
+            position: absolute;
+            inset: 0;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #666;
+            z-index: 5;
+        }
+
+        /* Debug Console */
+        #debugLog {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.8);
+            color: lime;
+            font-family: monospace;
+            font-size: 10px;
+            overflow-y: scroll;
+            padding: 5px;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- Panel 1-4 -->
+        <div class="side-panel">
+            {% for i in range(1, 5) %}
+            <div class="mesa-card">
+                <div class="mesa-title">Jugador {{ i }}</div>
+                <div class="mesa-controls">
+                    <button class="btn-score btn-minus" onclick="updateScore('jugador{{ i }}', 'subtract')">-</button>
+                    <button class="btn-score btn-plus" onclick="updateScore('jugador{{ i }}', 'add')">+</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="center-area">
+            <div class="scoreboard">
+                {% for i in range(1, 9) %}
+                <div class="score-display">
+                    <div class="score-val" id="disp-jugador{{ i }}">0</div>
+                    <div class="score-lbl">JUG {{ i }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="video-wrapper">
+                <div id="noSignal" class="no-signal">
+                    <h2>ESPERANDO GRABACIÓN</h2>
+                    <p id="statusMsg">Listo</p>
+                </div>
+                <!-- Playinline y muted para permitir autoplay -->
+                <video id="video" controls muted playsinline></video>
+                <div id="badgeLive" class="status-badge badge-live hidden">● EN VIVO</div>
+                <div id="badgeDVR" class="status-badge badge-dvr hidden">↺ REPRODUCCIÓN</div>
+                <div id="debugLog"></div>
+            </div>
+
+            <div class="controls-bar">
+                <button id="btnRecord" class="btn-main btn-record" onclick="toggleRecording()">Grabar</button>
+                <button class="btn-main btn-golive" onclick="goLive()">Ir a En Vivo</button>
+                <button class="btn-main" onclick="toggleDebug()">Debug</button>
+                <div style="flex:1"></div>
+                <button class="btn-main btn-reset" onclick="resetScores()">Reset 0</button>
+            </div>
+        </div>
+
+        <div class="side-panel right">
+            {% for i in range(5, 9) %}
+            <div class="mesa-card">
+                <div class="mesa-title">Jugador {{ i }}</div>
+                <div class="mesa-controls">
+                    <button class="btn-score btn-minus" onclick="updateScore('jugador{{ i }}', 'subtract')">-</button>
+                    <button class="btn-score btn-plus" onclick="updateScore('jugador{{ i }}', 'add')">+</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const hlsSource = '/hls/stream.m3u8';
+        let hls = null;
+        let recording = false;
+        let eventHistory = [];
+        let startTime = 0;
+        let currentServerScores = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlayer();
+            setInterval(checkStatus, 3000);
+            setInterval(fetchHistory, 5000);
+            log("Sistema iniciado.");
+        });
+
+        function log(msg) {
+            const dbg = document.getElementById('debugLog');
+            dbg.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            dbg.scrollTop = dbg.scrollHeight;
+        }
+
+        function toggleDebug() {
+            const dbg = document.getElementById('debugLog');
+            dbg.style.display = dbg.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function initPlayer() {
+            if (Hls.isSupported()) {
+                // Configuración BALANCEADA: ~4s latencia + DVR ilimitado
+                hls = new Hls({
+                    debug: false,
+                    enableWorker: true,
+                    lowLatencyMode: false,          // Desactivar modo ultra-low
+                    backBufferLength: 90,           // Mantener 90s atrás
+                    maxBufferLength: 30,            // 30s adelante
+                    liveSyncDurationCount: 2,       // 2 segmentos atrás (~4s)
+                    liveMaxLatencyDurationCount: 6, // Máx 6 segmentos
+                    manifestLoadingTimeOut: 10000,
+                    manifestLoadingMaxRetry: 5,
+                });
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MEDIA_ATTACHED, () => log("HLS Attached"));
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    log("Manifest Parsed. Intentando reproducir...");
+                    video.play().catch(e => log("Autoplay fail: " + e));
+                });
+
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        log(`Error Fatal: ${data.type}`);
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                log("Error red - reintentando...");
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                log("Error media - recuperando...");
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                log("Error irrecuperable - destruyendo hls");
+                                hls.destroy();
+                                break;
+                        }
+                    } else {
+                        // log(`Error Leve: ${data.details}`);
+                    }
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari nativo
+                video.src = hlsSource;
+                video.addEventListener('canplay', () => video.play());
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                if (data.recording && !recording) {
+                    log("Servidor grabando -> Iniciando player");
+                    startPlayerUI();
+                    recording = true;
+                    startTime = data.start_time;
+                    updateBtnUI(true);
+                } else if (!data.recording && recording) {
+                    log("Servidor detenido -> Parando player");
+                    stopPlayerUI();
+                    recording = false;
+                    updateBtnUI(false);
+                }
+
+                currentServerScores = data.current_scores;
+                if (isLiveMode()) {
+                    updateScoreboard(currentServerScores);
+                }
+            } catch (e) {
+                // log("Error status: " + e);
+            }
+        }
+
+        async function fetchHistory() {
+            if (!recording) return;
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                eventHistory = data.events;
+                startTime = data.start_time;
+            } catch (e) { }
+        }
+
+        function isLiveMode() {
+            if (!recording) return true;
+            if (video.paused) return false;
+            // Margen más amplio (6s) debido a segmentos de 2s
+            return (video.duration - video.currentTime) < 6.0;
+        }
+
+        video.addEventListener('timeupdate', () => {
+            if (!recording || eventHistory.length === 0) return;
+
+            const live = isLiveMode();
+            updateBadges(live);
+
+            if (live) return;
+
+            // Lógica DVR
+            // Buscar el último evento anterior
+            let foundScores = null;
+            // timestamp en history es Epoch.
+            // Para VOD (hls_list_size 0), video.currentTime es segs desde inicio grab.
+            // video.currentTime ~ (now - startTime)
+            // Evento relativo = event.timestamp - startTime
+
+            const vTime = video.currentTime;
+
+            for (let i = eventHistory.length - 1; i >= 0; i--) {
+                const eventRelativeTime = eventHistory[i].timestamp - startTime;
+                if (eventRelativeTime <= vTime) {
+                    foundScores = eventHistory[i].scores;
+                    break;
+                }
+            }
+
+            if (foundScores) {
+                updateScoreboard(foundScores);
+            } else if (eventHistory.length > 0) {
+                updateScoreboard(eventHistory[0].scores);
+            }
+        });
+
+        async function updateScore(player, action) {
+            const el = document.getElementById(`disp-${player}`);
+            let val = parseInt(el.innerText);
+            if (action === 'add') val++;
+            if (action === 'subtract' && val > 0) val--;
+            el.innerText = val;
+
+            try {
+                const res = await fetch('/update_score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player, action })
+                });
+                const data = await res.json();
+                currentServerScores = data.scores;
+                if (isLiveMode()) {
+                    updateScoreboard(currentServerScores);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function resetScores() {
+            if (!confirm("¿Resetear a 0?")) return;
+            await fetch('/reset_scores', { method: 'POST' });
+        }
+
+        async function toggleRecording() {
+            const btn = document.getElementById('btnRecord');
+            if (recording) {
+                if (!confirm("¿Parar grabación?")) return;
+                await fetch('/stop_recording', { method: 'POST' });
+                stopPlayerUI();
+            } else {
+                updateStatusMsg("Iniciando FFmpeg...");
+                await fetch('/start_recording', { method: 'POST' });
+            }
+        }
+
+        function startPlayerUI() {
+            document.getElementById('noSignal').classList.add('hidden');
+            hls.loadSource(hlsSource);
+            hls.startLoad();
+            video.muted = true;
+            video.play().catch(e => log("Autoplay blocked: " + e));
+        }
+
+        function stopPlayerUI() {
+            document.getElementById('noSignal').classList.remove('hidden');
+            updateStatusMsg("Listo");
+            if (hls) hls.stopLoad();
+            document.getElementById('badgeLive').classList.add('hidden');
+            document.getElementById('badgeDVR').classList.add('hidden');
+        }
+
+        function goLive() {
+            if (recording) {
+                video.currentTime = video.duration - 0.5;
+                video.play();
+            }
+        }
+
+        function updateScoreboard(scores) {
+            for (const [k, v] of Object.entries(scores)) {
+                const el = document.getElementById(`disp-${k}`);
+                if (el) el.innerText = v;
+            }
+        }
+
+        function updateBtnUI(isRec) {
+            const btn = document.getElementById('btnRecord');
+            if (isRec) {
+                btn.innerText = "Detener";
+                btn.className = "btn-main btn-golive";
+            } else {
+                btn.innerText = "Grabar";
+                btn.className = "btn-main btn-record";
+            }
+        }
+
+        function updateBadges(isLive) {
+            const bLive = document.getElementById('badgeLive');
+            const bDVR = document.getElementById('badgeDVR');
+            if (isLive) {
+                bLive.classList.remove('hidden');
+                bDVR.classList.add('hidden');
+            } else {
+                bLive.classList.add('hidden');
+                bDVR.classList.remove('hidden');
+            }
+        }
+
+        function updateStatusMsg(msg) {
+            document.getElementById('statusMsg').innerText = msg;
+        }
+    </script>
+</body>
+
+</html>
