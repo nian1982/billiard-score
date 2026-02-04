@@ -20,6 +20,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .hidden {
@@ -40,8 +41,8 @@
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            max-width: 600px;
-            width: 90%;
+            max-width: 800px;
+            width: 95%;
         }
 
         .setup-container h1 {
@@ -57,60 +58,64 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #aaa;
             font-weight: 500;
+            font-size: 1.1em;
         }
 
         .form-group input[type="number"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #2d2d2d;
             border: 1px solid #3d3d3d;
             border-radius: 6px;
             color: #fff;
-            font-size: 1.1em;
+            font-size: 1.2em;
         }
 
         .player-inputs {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 15px;
             margin-top: 15px;
         }
 
         .player-input {
-            display: flex;
+            display: grid;
+            grid-template-columns: 120px 1fr;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
 
         .player-input label {
-            min-width: 90px;
-            color: #888;
-            font-size: 0.9em;
+            color: #ccc;
+            font-size: 1em;
+            font-weight: 500;
+            text-align: right;
         }
 
         .player-input input {
-            flex: 1;
-            padding: 10px;
+            padding: 12px;
             background: #2d2d2d;
             border: 1px solid #3d3d3d;
             border-radius: 4px;
             color: #fff;
+            font-size: 1em;
+            width: 100%;
         }
 
         .btn-start {
             width: 100%;
-            padding: 15px;
+            padding: 18px;
             background: #28a745;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 1.2em;
+            font-size: 1.3em;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 25px;
             transition: 0.3s;
         }
 
@@ -121,139 +126,124 @@
         }
 
         /* === GAME VIEW === */
-        .main-container {
+        .game-container {
             display: flex;
-            flex: 1;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .side-panel {
-            width: 140px;
-            background: #1e1e1e;
-            padding: 10px;
-            overflow-y: auto;
+        /* Left side: scoreboard + video */
+        .left-section {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            border-right: 1px solid #333;
-        }
-
-        .side-panel.right {
-            border-left: 1px solid #333;
-            border-right: none;
-        }
-
-        .mesa-card {
-            background: #2d2d2d;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            border: 1px solid #3d3d3d;
-        }
-
-        .mesa-title {
-            font-size: 0.75em;
-            color: #aaa;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            font-weight: 600;
-            white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .mesa-controls {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-        }
 
-        .btn-score {
-            flex: 1;
-            padding: 10px 0;
-            font-size: 1.2em;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            color: white;
-            transition: 0.1s;
-        }
-
-        .btn-minus {
-            background: #c0392b;
-        }
-
-        .btn-plus {
-            background: #27ae60;
-        }
-
-        .center-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
+        /* Scoreboard superior */
         .scoreboard {
             background: #000;
-            padding: 10px;
+            padding: 12px 15px;
             display: flex;
             justify-content: center;
-            gap: 15px;
-            border-bottom: 2px solid #007bff;
+            gap: 18px;
+            border-bottom: 3px solid #007bff;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
 
         .score-display {
             text-align: center;
             background: #1a1a1a;
-            padding: 5px 12px;
-            border-radius: 4px;
-            border: 1px solid #333;
-            min-width: 70px;
+            padding: 20px 35px;
+            border-radius: 12px;
+            border: 5px solid #333;
+            min-width: 200px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .score-display:hover {
+            border-color: #007bff;
+            transform: scale(1.03);
+        }
+
+        .score-display.active {
+            border-color: #28a745;
+            background: #1e3a1e;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
         }
 
         .score-val {
-            font-size: 1.8em;
+            font-size: 4.5em;
             font-weight: bold;
             color: #fff;
             line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .score-avg {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-top: 10px;
+            border-top: 1px solid #444;
+            padding-top: 8px;
+            line-height: 1.5;
+        }
+
+        .score-avg-num {
+            color: #4CAF50;
+            font-weight: 600;
+            font-size: 1.1em;
         }
 
         .score-lbl {
-            font-size: 0.65em;
+            font-size: 0.8em;
             color: #888;
-            margin-top: 2px;
+            margin-top: 10px;
             text-transform: uppercase;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100px;
+            font-weight: 600;
+        }
+
+        /* Main content */
+        /* Video section */
+        .video-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            background: #0a0a0a;
+            min-height: 0;
         }
 
         .video-wrapper {
             flex: 1;
             background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 0;
         }
 
         video {
             width: 100%;
             height: 100%;
-            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        video:fullscreen {
+            object-fit: contain;
         }
 
         .status-badge {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 6px 12px;
-            border-radius: 4px;
+            top: 15px;
+            right: 15px;
+            padding: 8px 14px;
+            border-radius: 6px;
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 0.95em;
             z-index: 10;
             pointer-events: none;
         }
@@ -265,46 +255,6 @@
 
         .badge-dvr {
             background: #3498db;
-            color: white;
-        }
-
-        .controls-bar {
-            background: #1e1e1e;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn-main {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        .btn-record {
-            background: #d35400;
-            color: white;
-        }
-
-        .btn-golive {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-reset {
-            background: #7f8c8d;
-            color: white;
-        }
-
-        .btn-back {
-            background: #34495e;
             color: white;
         }
 
@@ -320,20 +270,129 @@
             z-index: 5;
         }
 
+        /* Panel lateral completo */
+        .control-panel {
+            width: 350px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-section {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .control-section h3 {
+            margin-bottom: 15px;
+            color: #fff;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .score-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .btn-score {
+            padding: 35px;
+            font-size: 3.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .btn-score:active {
+            transform: scale(0.95);
+        }
+
+        .btn-number {
+            background: #3498db;
+        }
+
+        .btn-number:hover {
+            background: #2980b9;
+        }
+
+        .btn-minus {
+            background: #e74c3c;
+        }
+
+        .btn-minus:hover {
+            background: #c0392b;
+        }
+
+        .btn-plus {
+            background: #27ae60;
+        }
+
+        .btn-plus:hover {
+            background: #229954;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        .btn-action {
+            padding: 14px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .btn-record {
+            background: #d35400;
+            color: white;
+        }
+
+        .btn-record:hover {
+            background: #ba4a00;
+        }
+
+        .btn-golive {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-back {
+            background: #34495e;
+            color: white;
+        }
+
         #debugLog {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 100px;
-            background: rgba(0, 0, 0, 0.8);
+            height: 120px;
+            background: rgba(0, 0, 0, 0.9);
             color: lime;
             font-family: monospace;
-            font-size: 10px;
+            font-size: 11px;
             overflow-y: scroll;
-            padding: 5px;
+            padding: 8px;
             pointer-events: none;
             display: none;
+            z-index: 100;
         }
     </style>
 </head>
@@ -357,46 +416,57 @@
 
     <!-- GAME VIEW -->
     <div id="game-view" class="hidden">
-        <div class="main-container">
-            <!-- Panel Izquierdo -->
-            <div id="leftPanel" class="side-panel"></div>
-
-            <!-- Centro -->
-            <div class="center-area">
+        <div class="game-container">
+            <!-- Left Section: Scoreboard + Video -->
+            <div class="left-section">
+                <!-- Scoreboard -->
                 <div id="scoreboard" class="scoreboard"></div>
 
-                <div class="video-wrapper">
-                    <div id="noSignal" class="no-signal">
-                        <h2>ESPERANDO GRABACIÓN</h2>
-                        <p id="statusMsg">Listo</p>
+                <!-- Video Section -->
+                <div class="video-section">
+                    <div class="video-wrapper">
+                        <div id="noSignal" class="no-signal">
+                            <h2>ESPERANDO GRABACIÓN</h2>
+                            <p id="statusMsg">Listo</p>
+                        </div>
+                        <video id="video" controls muted playsinline controlsList="nodownload"></video>
+                        <div id="badgeLive" class="status-badge badge-live hidden">● EN VIVO</div>
+                        <div id="badgeDVR" class="status-badge badge-dvr hidden">↺ REPRODUCCIÓN</div>
                     </div>
-                    <video id="video" controls muted playsinline></video>
-                    <div id="badgeLive" class="status-badge badge-live hidden">● EN VIVO</div>
-                    <div id="badgeDVR" class="status-badge badge-dvr hidden">↺ REPRODUCCIÓN</div>
-                    <div id="debugLog"></div>
-                </div>
-
-                <div class="controls-bar">
-                    <button id="btnRecord" class="btn-main btn-record" onclick="toggleRecording()">Grabar</button>
-                    <button class="btn-main btn-golive" onclick="goLive()">Ir a En Vivo</button>
-                    <button class="btn-main" onclick="toggleDebug()">Debug</button>
-                    <button class="btn-main btn-reset" onclick="resetScores()">Reset 0</button>
-                    <button class="btn-main btn-back" onclick="backToSetup()">← Configurar</button>
                 </div>
             </div>
 
-            <!-- Panel Derecho -->
-            <div id="rightPanel" class="side-panel right"></div>
+            <!-- Right Panel: Controls (Full Height) -->
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3>Puntos Rápidos</h3>
+                    <div class="score-buttons">
+                        <button class="btn-score btn-number" onclick="addPoints(1)">1</button>
+                        <button class="btn-score btn-number" onclick="addPoints(2)">2</button>
+                        <button class="btn-score btn-number" onclick="addPoints(3)">3</button>
+                        <button class="btn-score btn-number" onclick="addPoints(4)">4</button>
+                        <button class="btn-score btn-minus" onclick="addPoints(-1)">-</button>
+                        <button class="btn-score btn-plus" onclick="addPoints(1)">+</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btnRecord" class="btn-action btn-record" onclick="toggleRecording()">Grabar</button>
+                    <button class="btn-action btn-golive" onclick="goLive()">Ir a En Vivo</button>
+                    <button class="btn-action btn-back" onclick="backToSetup()">Nueva Partida</button>
+                </div>
+            </div>
         </div>
+        <div id="debugLog"></div>
     </div>
 
     <script>
         // === GLOBAL STATE ===
-        let gameConfig = {
-            playerCount: 2,
-            players: []
-        };
+        let gameConfig = { playerCount: 2, players: [] };
+        let activePlayerId = null;
         let currentServerScores = {};
+        let playerAttempts = {};
+        let currentPlayerIndex = 0; // Índice del jugador actual en secuencia
 
         const video = document.getElementById('video');
         const hlsSource = '/hls/stream.m3u8';
@@ -433,14 +503,10 @@
                 gameConfig.players.push({ id: `player_${i - 1}`, name: name });
             }
 
-            // Generar UI dinámica
             generateGameUI();
-
-            // Cambiar vista
             document.getElementById('setup-view').classList.add('hidden');
             document.getElementById('game-view').classList.remove('hidden');
 
-            // Inicializar player
             initPlayer();
             setInterval(checkStatus, 3000);
             setInterval(fetchHistory, 5000);
@@ -448,57 +514,124 @@
         }
 
         function generateGameUI() {
-            const leftPanel = document.getElementById('leftPanel');
-            const rightPanel = document.getElementById('rightPanel');
             const scoreboard = document.getElementById('scoreboard');
-
-            leftPanel.innerHTML = '';
-            rightPanel.innerHTML = '';
             scoreboard.innerHTML = '';
-
-            // Inicializar scores en servidor
             currentServerScores = {};
-            gameConfig.players.forEach(p => currentServerScores[p.id] = 0);
-
-            // Dividir jugadores entre paneles
-            const half = Math.ceil(gameConfig.players.length / 2);
+            playerAttempts = {};
+            currentPlayerIndex = 0;
 
             gameConfig.players.forEach((player, idx) => {
-                // Panel lateral
-                const card = document.createElement('div');
-                card.className = 'mesa-card';
-                card.innerHTML = `
-                    <div class="mesa-title">${player.name}</div>
-                    <div class="mesa-controls">
-                        <button class="btn-score btn-minus" onclick="updateScore('${player.id}', 'subtract')">-</button>
-                        <button class="btn-score btn-plus" onclick="updateScore('${player.id}', 'add')">+</button>
-                    </div>
-                `;
+                currentServerScores[player.id] = 0;
+                playerAttempts[player.id] = 0;
 
-                if (idx < half) {
-                    leftPanel.appendChild(card);
-                } else {
-                    rightPanel.appendChild(card);
-                }
-
-                // Marcador superior
                 const scoreDiv = document.createElement('div');
                 scoreDiv.className = 'score-display';
+                scoreDiv.id = `score-card-${player.id}`;
+                scoreDiv.onclick = () => selectPlayer(idx);
                 scoreDiv.innerHTML = `
                     <div class="score-val" id="disp-${player.id}">0</div>
-                    <div class="score-lbl" title="${player.name}">${player.name}</div>
+                    <div class="score-avg" id="avg-${player.id}">
+                        Prom: <span class="score-avg-num">0.0</span><br>
+                        <small>(0/0)</small>
+                    </div>
+                    <div class="score-lbl">${player.name}</div>
                 `;
                 scoreboard.appendChild(scoreDiv);
             });
+
+            // Activar primer jugador
+            if (gameConfig.players.length > 0) {
+                activePlayerId = gameConfig.players[0].id;
+                const firstCard = document.getElementById(`score-card-${activePlayerId}`);
+                if (firstCard) firstCard.classList.add('active');
+            }
+        }
+
+        function selectPlayer(playerIndex) {
+            const playerId = gameConfig.players[playerIndex].id;
+
+            // Incrementar intentos del jugador anterior si cambió
+            if (activePlayerId && activePlayerId !== playerId) {
+                playerAttempts[activePlayerId]++;
+                updatePlayerAverage(activePlayerId);
+            }
+
+            activePlayerId = playerId;
+            currentPlayerIndex = playerIndex;
+
+            // Actualizar estilos
+            document.querySelectorAll('.score-display').forEach(el => {
+                el.classList.remove('active');
+            });
+            const card = document.getElementById(`score-card-${playerId}`);
+            if (card) card.classList.add('active');
+        }
+
+        function updatePlayerStates() {
+            gameConfig.players.forEach((player, idx) => {
+                const card = document.getElementById(`score-card-${player.id}`);
+                if (!card) return;
+
+                card.classList.remove('active', 'disabled');
+
+                if (idx === currentPlayerIndex) {
+                    card.classList.add('active');
+                    activePlayerId = player.id;
+                } else {
+                    card.classList.add('disabled');
+                }
+            });
+        }
+
+        function updatePlayerAverage(playerId) {
+            const avgEl = document.getElementById(`avg-${playerId}`);
+            if (!avgEl) return;
+
+            const points = currentServerScores[playerId] || 0;
+            const attempts = playerAttempts[playerId] || 0;
+            const avg = attempts > 0 ? (points / attempts).toFixed(1) : '0.0';
+
+            avgEl.innerHTML = `
+                Prom: <span class="score-avg-num">${avg}</span><br>
+                <small>(${points}/${attempts})</small>
+            `;
+        }
+
+        function addPoints(amount) {
+            if (!activePlayerId) {
+                alert('Selecciona un jugador primero');
+                return;
+            }
+
+            const el = document.getElementById(`disp-${activePlayerId}`);
+            if (!el) return;
+
+            let val = parseInt(el.innerText);
+            val += amount;
+            if (val < 0) val = 0;
+            el.innerText = val;
+
+            const action = amount > 0 ? 'add' : 'subtract';
+            const times = Math.abs(amount);
+
+            for (let i = 0; i < times; i++) {
+                fetch('/update_score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player: activePlayerId, action })
+                }).then(r => r.json()).then(data => {
+                    currentServerScores = data.scores;
+                    if (isLiveMode()) updateScoreboard(currentServerScores);
+                });
+            }
         }
 
         function backToSetup() {
+            if (recording && !confirm('¿Detener grabación y comenzar nueva partida?')) return;
             if (recording) {
-                if (!confirm('¿Detener grabación y volver a configuración?')) return;
                 fetch('/stop_recording', { method: 'POST' });
                 recording = false;
             }
-
             document.getElementById('game-view').classList.add('hidden');
             document.getElementById('setup-view').classList.remove('hidden');
         }
@@ -508,11 +641,6 @@
             const dbg = document.getElementById('debugLog');
             dbg.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             dbg.scrollTop = dbg.scrollHeight;
-        }
-
-        function toggleDebug() {
-            const dbg = document.getElementById('debugLog');
-            dbg.style.display = dbg.style.display === 'block' ? 'none' : 'block';
         }
 
         function initPlayer() {
@@ -529,26 +657,18 @@
                     manifestLoadingMaxRetry: 5,
                 });
                 hls.attachMedia(video);
-
                 hls.on(Hls.Events.MEDIA_ATTACHED, () => log("HLS Attached"));
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     log("Manifest Parsed");
                     video.play().catch(e => log("Autoplay fail: " + e));
                 });
-
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
                         log(`Error Fatal: ${data.type}`);
                         switch (data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                hls.startLoad();
-                                break;
-                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                hls.recoverMediaError();
-                                break;
-                            default:
-                                hls.destroy();
-                                break;
+                            case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
+                            case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
+                            default: hls.destroy(); break;
                         }
                     }
                 });
@@ -562,7 +682,6 @@
             try {
                 const res = await fetch('/api/status');
                 const data = await res.json();
-
                 if (data.recording && !recording) {
                     log("Servidor grabando");
                     startPlayerUI();
@@ -574,11 +693,8 @@
                     recording = false;
                     updateBtnUI(false);
                 }
-
                 currentServerScores = data.current_scores;
-                if (isLiveMode()) {
-                    updateScoreboard(currentServerScores);
-                }
+                if (isLiveMode()) updateScoreboard(currentServerScores);
             } catch (e) { }
         }
 
@@ -600,14 +716,12 @@
 
         video.addEventListener('timeupdate', () => {
             if (!recording || eventHistory.length === 0) return;
-
             const live = isLiveMode();
             updateBadges(live);
             if (live) return;
 
             const vTime = video.currentTime;
             let foundScores = null;
-
             for (let i = eventHistory.length - 1; i >= 0; i--) {
                 const eventRelativeTime = eventHistory[i].timestamp - startTime;
                 if (eventRelativeTime <= vTime) {
@@ -615,41 +729,9 @@
                     break;
                 }
             }
-
-            if (foundScores) {
-                updateScoreboard(foundScores);
-            } else if (eventHistory.length > 0) {
-                updateScoreboard(eventHistory[0].scores);
-            }
+            if (foundScores) updateScoreboard(foundScores);
+            else if (eventHistory.length > 0) updateScoreboard(eventHistory[0].scores);
         });
-
-        async function updateScore(playerId, action) {
-            const el = document.getElementById(`disp-${playerId}`);
-            if (!el) return;
-
-            let val = parseInt(el.innerText);
-            if (action === 'add') val++;
-            if (action === 'subtract' && val > 0) val--;
-            el.innerText = val;
-
-            try {
-                const res = await fetch('/update_score', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ player: playerId, action })
-                });
-                const data = await res.json();
-                currentServerScores = data.scores;
-                if (isLiveMode()) {
-                    updateScoreboard(currentServerScores);
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function resetScores() {
-            if (!confirm("¿Resetear a 0?")) return;
-            await fetch('/reset_scores', { method: 'POST' });
-        }
 
         async function toggleRecording() {
             if (recording) {
@@ -688,7 +770,11 @@
         function updateScoreboard(scores) {
             for (const [k, v] of Object.entries(scores)) {
                 const el = document.getElementById(`disp-${k}`);
-                if (el) el.innerText = v;
+                if (el) {
+                    el.innerText = v;
+                    currentServerScores[k] = v;
+                    updatePlayerAverage(k);
+                }
             }
         }
 
@@ -696,10 +782,10 @@
             const btn = document.getElementById('btnRecord');
             if (isRec) {
                 btn.innerText = "Detener";
-                btn.className = "btn-main btn-golive";
+                btn.className = "btn-action btn-golive";
             } else {
                 btn.innerText = "Grabar";
-                btn.className = "btn-main btn-record";
+                btn.className = "btn-action btn-record";
             }
         }
 
@@ -719,7 +805,6 @@
             document.getElementById('statusMsg').innerText = msg;
         }
 
-        // Initialize setup on load
         document.addEventListener('DOMContentLoaded', () => {
             generatePlayerInputs();
         });
