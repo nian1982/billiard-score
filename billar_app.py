@@ -24,7 +24,8 @@ class GlobalState:
     def __init__(self):
         self.recording = False
         self.start_time = 0
-        self.scores = {f'jugador{i}': 0 for i in range(1, 9)}
+        # Scores dinámicos (se inicializan desde frontend)
+        self.scores = {}
         self.history = []
         self.ffmpeg_process = None
 
@@ -162,20 +163,23 @@ def update_score():
     player = data.get('player')
     action = data.get('action')
     
-    if player in state.scores:
-        original_score = state.scores[player]
-        if action == 'add':
-            state.scores[player] += 1
-        elif action == 'subtract' and state.scores[player] > 0:
-            state.scores[player] -= 1
-            
-        if state.scores[player] != original_score:
-            current_time = time.time()
-            state.history.append({
-                'timestamp': current_time,
-                'scores': state.scores.copy()
-            })
-            
+    # Auto-inicializar jugador si no existe
+    if player not in state.scores:
+        state.scores[player] = 0
+    
+    original_score = state.scores[player]
+    if action == 'add':
+        state.scores[player] += 1
+    elif action == 'subtract' and state.scores[player] > 0:
+        state.scores[player] -= 1
+        
+    if state.scores[player] != original_score:
+        current_time = time.time()
+        state.history.append({
+            'timestamp': current_time,
+            'scores': state.scores.copy()
+        })
+        
     return jsonify({'scores': state.scores})
 
 @app.route('/reset_scores', methods=['POST'])

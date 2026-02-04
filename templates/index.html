@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Billa - HLS Stable</title>
+    <title>Control Billar - HLS</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
@@ -22,6 +22,105 @@
             flex-direction: column;
         }
 
+        .hidden {
+            display: none !important;
+        }
+
+        /* === SETUP VIEW === */
+        #setup-view {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        .setup-container {
+            background: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .setup-container h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            background: #2d2d2d;
+            border: 1px solid #3d3d3d;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1.1em;
+        }
+
+        .player-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .player-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-input label {
+            min-width: 90px;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .player-input input {
+            flex: 1;
+            padding: 10px;
+            background: #2d2d2d;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .btn-start:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        /* === GAME VIEW === */
         .main-container {
             display: flex;
             flex: 1;
@@ -58,6 +157,9 @@
             margin-bottom: 5px;
             text-transform: uppercase;
             font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .mesa-controls {
@@ -123,6 +225,10 @@
             color: #888;
             margin-top: 2px;
             text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
         }
 
         .video-wrapper {
@@ -162,10 +268,6 @@
             color: white;
         }
 
-        .hidden {
-            display: none !important;
-        }
-
         .controls-bar {
             background: #1e1e1e;
             padding: 15px;
@@ -173,6 +275,7 @@
             align-items: center;
             gap: 15px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn-main {
@@ -198,7 +301,11 @@
         .btn-reset {
             background: #7f8c8d;
             color: white;
-            margin-left: auto;
+        }
+
+        .btn-back {
+            background: #34495e;
+            color: white;
         }
 
         .no-signal {
@@ -213,7 +320,6 @@
             z-index: 5;
         }
 
-        /* Debug Console */
         #debugLog {
             position: absolute;
             bottom: 0;
@@ -233,80 +339,171 @@
 </head>
 
 <body>
-    <div class="main-container">
-        <!-- Panel 1-4 -->
-        <div class="side-panel">
-            {% for i in range(1, 5) %}
-            <div class="mesa-card">
-                <div class="mesa-title">Jugador {{ i }}</div>
-                <div class="mesa-controls">
-                    <button class="btn-score btn-minus" onclick="updateScore('jugador{{ i }}', 'subtract')">-</button>
-                    <button class="btn-score btn-plus" onclick="updateScore('jugador{{ i }}', 'add')">+</button>
-                </div>
+    <!-- SETUP VIEW -->
+    <div id="setup-view">
+        <div class="setup-container">
+            <h1>🎱 Configurar Partida</h1>
+            <div class="form-group">
+                <label for="playerCount">Número de Jugadores (1-8):</label>
+                <input type="number" id="playerCount" min="1" max="8" value="2" onchange="generatePlayerInputs()">
             </div>
-            {% endfor %}
+            <div class="form-group">
+                <label>Nombres de Jugadores (opcional):</label>
+                <div id="playerInputs" class="player-inputs"></div>
+            </div>
+            <button class="btn-start" onclick="startGame()">🎮 Iniciar Partida</button>
         </div>
+    </div>
 
-        <div class="center-area">
-            <div class="scoreboard">
-                {% for i in range(1, 9) %}
-                <div class="score-display">
-                    <div class="score-val" id="disp-jugador{{ i }}">0</div>
-                    <div class="score-lbl">JUG {{ i }}</div>
+    <!-- GAME VIEW -->
+    <div id="game-view" class="hidden">
+        <div class="main-container">
+            <!-- Panel Izquierdo -->
+            <div id="leftPanel" class="side-panel"></div>
+
+            <!-- Centro -->
+            <div class="center-area">
+                <div id="scoreboard" class="scoreboard"></div>
+
+                <div class="video-wrapper">
+                    <div id="noSignal" class="no-signal">
+                        <h2>ESPERANDO GRABACIÓN</h2>
+                        <p id="statusMsg">Listo</p>
+                    </div>
+                    <video id="video" controls muted playsinline></video>
+                    <div id="badgeLive" class="status-badge badge-live hidden">● EN VIVO</div>
+                    <div id="badgeDVR" class="status-badge badge-dvr hidden">↺ REPRODUCCIÓN</div>
+                    <div id="debugLog"></div>
                 </div>
-                {% endfor %}
-            </div>
 
-            <div class="video-wrapper">
-                <div id="noSignal" class="no-signal">
-                    <h2>ESPERANDO GRABACIÓN</h2>
-                    <p id="statusMsg">Listo</p>
-                </div>
-                <!-- Playinline y muted para permitir autoplay -->
-                <video id="video" controls muted playsinline></video>
-                <div id="badgeLive" class="status-badge badge-live hidden">● EN VIVO</div>
-                <div id="badgeDVR" class="status-badge badge-dvr hidden">↺ REPRODUCCIÓN</div>
-                <div id="debugLog"></div>
-            </div>
-
-            <div class="controls-bar">
-                <button id="btnRecord" class="btn-main btn-record" onclick="toggleRecording()">Grabar</button>
-                <button class="btn-main btn-golive" onclick="goLive()">Ir a En Vivo</button>
-                <button class="btn-main" onclick="toggleDebug()">Debug</button>
-                <div style="flex:1"></div>
-                <button class="btn-main btn-reset" onclick="resetScores()">Reset 0</button>
-            </div>
-        </div>
-
-        <div class="side-panel right">
-            {% for i in range(5, 9) %}
-            <div class="mesa-card">
-                <div class="mesa-title">Jugador {{ i }}</div>
-                <div class="mesa-controls">
-                    <button class="btn-score btn-minus" onclick="updateScore('jugador{{ i }}', 'subtract')">-</button>
-                    <button class="btn-score btn-plus" onclick="updateScore('jugador{{ i }}', 'add')">+</button>
+                <div class="controls-bar">
+                    <button id="btnRecord" class="btn-main btn-record" onclick="toggleRecording()">Grabar</button>
+                    <button class="btn-main btn-golive" onclick="goLive()">Ir a En Vivo</button>
+                    <button class="btn-main" onclick="toggleDebug()">Debug</button>
+                    <button class="btn-main btn-reset" onclick="resetScores()">Reset 0</button>
+                    <button class="btn-main btn-back" onclick="backToSetup()">← Configurar</button>
                 </div>
             </div>
-            {% endfor %}
+
+            <!-- Panel Derecho -->
+            <div id="rightPanel" class="side-panel right"></div>
         </div>
     </div>
 
     <script>
+        // === GLOBAL STATE ===
+        let gameConfig = {
+            playerCount: 2,
+            players: []
+        };
+        let currentServerScores = {};
+
         const video = document.getElementById('video');
         const hlsSource = '/hls/stream.m3u8';
         let hls = null;
         let recording = false;
         let eventHistory = [];
         let startTime = 0;
-        let currentServerScores = {};
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // === SETUP LOGIC ===
+        function generatePlayerInputs() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            const container = document.getElementById('playerInputs');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement('div');
+                div.className = 'player-input';
+                div.innerHTML = `
+                    <label>Jugador ${i}:</label>
+                    <input type="text" id="player${i}Name" placeholder="Jugador ${i}">
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function startGame() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            gameConfig.playerCount = count;
+            gameConfig.players = [];
+
+            for (let i = 1; i <= count; i++) {
+                const nameInput = document.getElementById(`player${i}Name`);
+                const name = nameInput.value.trim() || `Jugador ${i}`;
+                gameConfig.players.push({ id: `player_${i - 1}`, name: name });
+            }
+
+            // Generar UI dinámica
+            generateGameUI();
+
+            // Cambiar vista
+            document.getElementById('setup-view').classList.add('hidden');
+            document.getElementById('game-view').classList.remove('hidden');
+
+            // Inicializar player
             initPlayer();
             setInterval(checkStatus, 3000);
             setInterval(fetchHistory, 5000);
-            log("Sistema iniciado.");
-        });
+            log("Sistema iniciado con " + count + " jugadores");
+        }
 
+        function generateGameUI() {
+            const leftPanel = document.getElementById('leftPanel');
+            const rightPanel = document.getElementById('rightPanel');
+            const scoreboard = document.getElementById('scoreboard');
+
+            leftPanel.innerHTML = '';
+            rightPanel.innerHTML = '';
+            scoreboard.innerHTML = '';
+
+            // Inicializar scores en servidor
+            currentServerScores = {};
+            gameConfig.players.forEach(p => currentServerScores[p.id] = 0);
+
+            // Dividir jugadores entre paneles
+            const half = Math.ceil(gameConfig.players.length / 2);
+
+            gameConfig.players.forEach((player, idx) => {
+                // Panel lateral
+                const card = document.createElement('div');
+                card.className = 'mesa-card';
+                card.innerHTML = `
+                    <div class="mesa-title">${player.name}</div>
+                    <div class="mesa-controls">
+                        <button class="btn-score btn-minus" onclick="updateScore('${player.id}', 'subtract')">-</button>
+                        <button class="btn-score btn-plus" onclick="updateScore('${player.id}', 'add')">+</button>
+                    </div>
+                `;
+
+                if (idx < half) {
+                    leftPanel.appendChild(card);
+                } else {
+                    rightPanel.appendChild(card);
+                }
+
+                // Marcador superior
+                const scoreDiv = document.createElement('div');
+                scoreDiv.className = 'score-display';
+                scoreDiv.innerHTML = `
+                    <div class="score-val" id="disp-${player.id}">0</div>
+                    <div class="score-lbl" title="${player.name}">${player.name}</div>
+                `;
+                scoreboard.appendChild(scoreDiv);
+            });
+        }
+
+        function backToSetup() {
+            if (recording) {
+                if (!confirm('¿Detener grabación y volver a configuración?')) return;
+                fetch('/stop_recording', { method: 'POST' });
+                recording = false;
+            }
+
+            document.getElementById('game-view').classList.add('hidden');
+            document.getElementById('setup-view').classList.remove('hidden');
+        }
+
+        // === PLAYER LOGIC ===
         function log(msg) {
             const dbg = document.getElementById('debugLog');
             dbg.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
@@ -320,15 +517,14 @@
 
         function initPlayer() {
             if (Hls.isSupported()) {
-                // Configuración BALANCEADA: ~4s latencia + DVR ilimitado
                 hls = new Hls({
                     debug: false,
                     enableWorker: true,
-                    lowLatencyMode: false,          // Desactivar modo ultra-low
-                    backBufferLength: 90,           // Mantener 90s atrás
-                    maxBufferLength: 30,            // 30s adelante
-                    liveSyncDurationCount: 2,       // 2 segmentos atrás (~4s)
-                    liveMaxLatencyDurationCount: 6, // Máx 6 segmentos
+                    lowLatencyMode: false,
+                    backBufferLength: 90,
+                    maxBufferLength: 30,
+                    liveSyncDurationCount: 2,
+                    liveMaxLatencyDurationCount: 6,
                     manifestLoadingTimeOut: 10000,
                     manifestLoadingMaxRetry: 5,
                 });
@@ -336,7 +532,7 @@
 
                 hls.on(Hls.Events.MEDIA_ATTACHED, () => log("HLS Attached"));
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    log("Manifest Parsed. Intentando reproducir...");
+                    log("Manifest Parsed");
                     video.play().catch(e => log("Autoplay fail: " + e));
                 });
 
@@ -345,24 +541,18 @@
                         log(`Error Fatal: ${data.type}`);
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                log("Error red - reintentando...");
                                 hls.startLoad();
                                 break;
                             case Hls.ErrorTypes.MEDIA_ERROR:
-                                log("Error media - recuperando...");
                                 hls.recoverMediaError();
                                 break;
                             default:
-                                log("Error irrecuperable - destruyendo hls");
                                 hls.destroy();
                                 break;
                         }
-                    } else {
-                        // log(`Error Leve: ${data.details}`);
                     }
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari nativo
                 video.src = hlsSource;
                 video.addEventListener('canplay', () => video.play());
             }
@@ -374,13 +564,12 @@
                 const data = await res.json();
 
                 if (data.recording && !recording) {
-                    log("Servidor grabando -> Iniciando player");
+                    log("Servidor grabando");
                     startPlayerUI();
                     recording = true;
                     startTime = data.start_time;
                     updateBtnUI(true);
                 } else if (!data.recording && recording) {
-                    log("Servidor detenido -> Parando player");
                     stopPlayerUI();
                     recording = false;
                     updateBtnUI(false);
@@ -390,9 +579,7 @@
                 if (isLiveMode()) {
                     updateScoreboard(currentServerScores);
                 }
-            } catch (e) {
-                // log("Error status: " + e);
-            }
+            } catch (e) { }
         }
 
         async function fetchHistory() {
@@ -408,7 +595,6 @@
         function isLiveMode() {
             if (!recording) return true;
             if (video.paused) return false;
-            // Margen más amplio (6s) debido a segmentos de 2s
             return (video.duration - video.currentTime) < 6.0;
         }
 
@@ -417,18 +603,10 @@
 
             const live = isLiveMode();
             updateBadges(live);
-
             if (live) return;
 
-            // Lógica DVR
-            // Buscar el último evento anterior
-            let foundScores = null;
-            // timestamp en history es Epoch.
-            // Para VOD (hls_list_size 0), video.currentTime es segs desde inicio grab.
-            // video.currentTime ~ (now - startTime)
-            // Evento relativo = event.timestamp - startTime
-
             const vTime = video.currentTime;
+            let foundScores = null;
 
             for (let i = eventHistory.length - 1; i >= 0; i--) {
                 const eventRelativeTime = eventHistory[i].timestamp - startTime;
@@ -445,8 +623,10 @@
             }
         });
 
-        async function updateScore(player, action) {
-            const el = document.getElementById(`disp-${player}`);
+        async function updateScore(playerId, action) {
+            const el = document.getElementById(`disp-${playerId}`);
+            if (!el) return;
+
             let val = parseInt(el.innerText);
             if (action === 'add') val++;
             if (action === 'subtract' && val > 0) val--;
@@ -456,7 +636,7 @@
                 const res = await fetch('/update_score', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ player, action })
+                    body: JSON.stringify({ player: playerId, action })
                 });
                 const data = await res.json();
                 currentServerScores = data.scores;
@@ -472,7 +652,6 @@
         }
 
         async function toggleRecording() {
-            const btn = document.getElementById('btnRecord');
             if (recording) {
                 if (!confirm("¿Parar grabación?")) return;
                 await fetch('/stop_recording', { method: 'POST' });
@@ -539,6 +718,11 @@
         function updateStatusMsg(msg) {
             document.getElementById('statusMsg').innerText = msg;
         }
+
+        // Initialize setup on load
+        document.addEventListener('DOMContentLoaded', () => {
+            generatePlayerInputs();
+        });
     </script>
 </body>
 
